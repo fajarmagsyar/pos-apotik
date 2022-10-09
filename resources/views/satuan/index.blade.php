@@ -1,17 +1,12 @@
 @extends('layouts.master')
 
 @section('title')
-    Daftar Produk
+    Daftar Satuan
 @endsection
-
-@push('css')
-    <link rel="stylesheet"
-        href="{{ asset('/AdminLTE-2/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css') }}">
-@endpush
 
 @section('breadcrumb')
     @parent
-    <li class="active">Daftar Produk</li>
+    <li class="active">Daftar Satuan</li>
 @endsection
 
 @section('content')
@@ -20,16 +15,14 @@
             <div class="box">
                 <div class="box-header with-border">
                     <div class="btn-group">
-                        <button onclick="addForm('{{ route('produk.store') }}')" class="btn btn-success btn-xs btn-flat"><i
+                        <button onclick="addForm('{{ route('satuan.store') }}')" class="btn btn-success btn-xs btn-flat"><i
                                 class="fa fa-plus-circle"></i> Tambah</button>
-                        <button onclick="deleteSelected('{{ route('produk.delete_selected') }}')"
+                        <button onclick="deleteSelected('{{ route('satuan.delete_selected') }}')"
                             class="btn btn-danger btn-xs btn-flat"><i class="fa fa-trash"></i> Hapus</button>
-                        <button onclick="cetakBarcode('{{ route('produk.cetak_barcode') }}')"
-                            class="btn btn-info btn-xs btn-flat"><i class="fa fa-barcode"></i> Cetak Barcode</button>
                     </div>
                 </div>
                 <div class="box-body table-responsive">
-                    <form action="" method="post" class="form-produk">
+                    <form action="" method="post" class="form-satuan">
                         @csrf
                         <table class="table table-stiped table-bordered">
                             <thead>
@@ -37,16 +30,7 @@
                                     <input type="checkbox" name="select_all" id="select_all">
                                 </th>
                                 <th width="5%">No</th>
-                                <th>Kode</th>
-                                <th>Nama</th>
-                                <th>Kategori</th>
-                                <th>Merk</th>
-                                <th>Harga Beli</th>
-                                <th>Harga Jual</th>
-                                <th>Satuan</th>
-                                <th>Stok</th>
-                                <th>Stok Minimum</th>
-                                <th>Expired</th>
+                                <th>Nama Satuan</th>
                                 <th width="15%"><i class="fa fa-cog"></i></th>
                             </thead>
                         </table>
@@ -56,13 +40,10 @@
         </div>
     </div>
 
-    @includeIf('produk.form')
+    @includeIf('satuan.form')
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('/AdminLTE-2/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js') }}">
-    </script>
-
     <script>
         let table;
 
@@ -73,7 +54,7 @@
                 serverSide: true,
                 autoWidth: false,
                 ajax: {
-                    url: '{{ route('produk.data') }}',
+                    url: '{{ route('satuan.data') }}',
                 },
                 columns: [{
                         data: 'select_all',
@@ -86,34 +67,7 @@
                         sortable: false
                     },
                     {
-                        data: 'kode_produk'
-                    },
-                    {
-                        data: 'nama_produk'
-                    },
-                    {
-                        data: 'nama_kategori'
-                    },
-                    {
-                        data: 'merk'
-                    },
-                    {
-                        data: 'harga_beli'
-                    },
-                    {
-                        data: 'harga_jual'
-                    },
-                    {
                         data: 'nama_satuan'
-                    },
-                    {
-                        data: 'stok'
-                    },
-                    {
-                        data: 'stokminimum'
-                    },
-                    {
-                        data: 'expired_date'
                     },
                     {
                         data: 'aksi',
@@ -121,11 +75,6 @@
                         sortable: false
                     },
                 ]
-            });
-
-            $('.datepicker').datepicker({
-                format: 'yyyy-mm-dd',
-                autoclose: true
             });
 
             $('#modal-form').validator().on('submit', function(e) {
@@ -149,36 +98,26 @@
 
         function addForm(url) {
             $('#modal-form').modal('show');
-            $('#modal-form .modal-title').text('Tambah Produk');
+            $('#modal-form .modal-title').text('Tambah Satuan');
 
             $('#modal-form form')[0].reset();
             $('#modal-form form').attr('action', url);
             $('#modal-form [name=_method]').val('post');
-            $('#modal-form [name=nama_produk]').focus();
+            $('#modal-form [name=nama_satuan]').focus();
         }
 
         function editForm(url) {
             $('#modal-form').modal('show');
-            $('#modal-form .modal-title').text('Edit Produk');
+            $('#modal-form .modal-title').text('Edit Satuan');
 
             $('#modal-form form')[0].reset();
             $('#modal-form form').attr('action', url);
             $('#modal-form [name=_method]').val('put');
-            $('#modal-form [name=nama_produk]').focus();
+            $('#modal-form [name=nama_satuan]').focus();
 
             $.get(url)
                 .done((response) => {
-                    $('#modal-form [name=id_supplier]').val(response.id_supplier);
-                    $('#modal-form [name=kode_produk]').val(response.kode_produk);
-                    $('#modal-form [name=nama_produk]').val(response.nama_produk);
-                    $('#modal-form [name=id_kategori]').val(response.id_kategori);
-                    $('#modal-form [name=merk]').val(response.merk);
-                    $('#modal-form [name=harga_beli]').val(response.harga_beli);
-                    $('#modal-form [name=harga_jual]').val(response.harga_jual);
-                    $('#modal-form [name=id_satuan]').val(response.id_satuan);
-                    $('#modal-form [name=stok]').val(response.stok);
-                    $('#modal-form [name=stokminimum]').val(response.stokminimum);
-                    $('#modal-form [name=expired_date]').val(response.expired_date);
+                    $('#modal-form [name=nama_satuan]').val(response.nama_satuan);
                 })
                 .fail((errors) => {
                     alert('Tidak dapat menampilkan data');
@@ -205,7 +144,7 @@
         function deleteSelected(url) {
             if ($('input:checked').length > 1) {
                 if (confirm('Yakin ingin menghapus data terpilih?')) {
-                    $.post(url, $('.form-produk').serialize())
+                    $.post(url, $('.form-satuan').serialize())
                         .done((response) => {
                             table.ajax.reload();
                         })
@@ -228,7 +167,7 @@
                 alert('Pilih minimal 3 data untuk dicetak');
                 return;
             } else {
-                $('.form-produk')
+                $('.form-satuan')
                     .attr('target', '_blank')
                     .attr('action', url)
                     .submit();

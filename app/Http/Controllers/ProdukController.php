@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 use App\Models\Produk;
+use App\Models\Satuan;
+use App\Models\Supplier;
+use Illuminate\Support\Facades\Response;
 use PDF;
 
 class ProdukController extends Controller
@@ -14,17 +17,27 @@ class ProdukController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function ambilData($kode)
+    {
+        $produk = Produk::where('kode_produk', $kode)->first();
+
+        return Response::json($produk);
+    }
+
     public function index()
     {
         $kategori = Kategori::all()->pluck('nama_kategori', 'id_kategori');
+        $satuan = Satuan::all()->pluck('nama_satuan', 'id_satuan');
+        $supplier = Supplier::all()->pluck('nama', 'id_supplier');
 
-        return view('produk.index', compact('kategori'));
+        return view('produk.index', compact('kategori', 'satuan', 'supplier'));
     }
 
     public function data()
     {
         $produk = Produk::leftJoin('kategori', 'kategori.id_kategori', 'produk.id_kategori')
-            ->select('produk.*', 'nama_kategori')
+            ->leftJoin('satuan', 'satuan.id_satuan', 'produk.id_satuan')
+            ->select('produk.*', 'kategori.nama_kategori', 'satuan.nama_satuan')
             // ->orderBy('kode_produk', 'asc')
             ->get();
 
@@ -33,11 +46,11 @@ class ProdukController extends Controller
             ->addIndexColumn()
             ->addColumn('select_all', function ($produk) {
                 return '
-                    <input type="checkbox" name="id_produk[]" value="'. $produk->id_produk .'">
+                    <input type="checkbox" name="id_produk[]" value="' . $produk->id_produk . '">
                 ';
             })
             ->addColumn('kode_produk', function ($produk) {
-                return '<span class="label label-success">'. $produk->kode_produk .'</span>';
+                return '<span class="label label-success">' . $produk->kode_produk . '</span>';
             })
             ->addColumn('harga_beli', function ($produk) {
                 return format_uang($produk->harga_beli);
@@ -51,8 +64,8 @@ class ProdukController extends Controller
             ->addColumn('aksi', function ($produk) {
                 return '
                 <div class="btn-group">
-                    <button type="button" onclick="editForm(`'. route('produk.update', $produk->id_produk) .'`)" class="btn btn-xs btn-info btn-flat"><i class="fa fa-pencil"></i></button>
-                    <button type="button" onclick="deleteData(`'. route('produk.destroy', $produk->id_produk) .'`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
+                    <button type="button" onclick="editForm(`' . route('produk.update', $produk->id_produk) . '`)" class="btn btn-xs btn-info btn-flat"><i class="fa fa-pencil"></i></button>
+                    <button type="button" onclick="deleteData(`' . route('produk.destroy', $produk->id_produk) . '`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
                 </div>
                 ';
             })
@@ -79,7 +92,10 @@ class ProdukController extends Controller
     public function store(Request $request)
     {
         $produk = Produk::latest()->first() ?? new Produk();
-        $request['kode_produk'] = 'P'. tambah_nol_didepan((int)$produk->id_produk +1, 6);
+
+        if ($request->kode_produk == null) {
+            $request['kode_produk'] = 'P' . tambah_nol_didepan((int)$produk->id_produk + 1, 6);
+        }
 
         $produk = Produk::create($request->all());
 

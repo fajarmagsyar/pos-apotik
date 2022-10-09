@@ -11,6 +11,7 @@ use App\Http\Controllers\{
     PembelianDetailController,
     PenjualanController,
     PenjualanDetailController,
+    SatuanController,
     SettingController,
     SupplierController,
     UserController,
@@ -34,6 +35,8 @@ Route::get('/', function () {
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/dataRestok', [DashboardController::class, 'dataRestok'])->name('dashboard.dataRestok');
+    Route::get('/dashboard/dataExpired', [DashboardController::class, 'dataExpired'])->name('dashboard.dateExpired');
 
     Route::group(['middleware' => 'level:1'], function () {
         Route::get('/kategori/data', [KategoriController::class, 'data'])->name('kategori.data');
@@ -43,6 +46,10 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/produk/delete-selected', [ProdukController::class, 'deleteSelected'])->name('produk.delete_selected');
         Route::post('/produk/cetak-barcode', [ProdukController::class, 'cetakBarcode'])->name('produk.cetak_barcode');
         Route::resource('/produk', ProdukController::class);
+
+        Route::get('/satuan/data', [SatuanController::class, 'data'])->name('satuan.data');
+        Route::post('/satuan/delete-selected', [SatuanController::class, 'deleteSelected'])->name('satuan.delete_selected');
+        Route::resource('/satuan', SatuanController::class);
 
         Route::get('/member/data', [MemberController::class, 'data'])->name('member.data');
         Route::post('/member/cetak-member', [MemberController::class, 'cetakMember'])->name('member.cetak_member');
@@ -81,6 +88,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/transaksi/loadform/{diskon}/{total}/{diterima}', [PenjualanDetailController::class, 'loadForm'])->name('transaksi.load_form');
         Route::resource('/transaksi', PenjualanDetailController::class)
             ->except('create', 'show', 'edit');
+        Route::get('/produk/ambilSalahSatu/{kode}', [ProdukController::class, 'ambilData']);
     });
 
     Route::group(['middleware' => 'level:1'], function () {
@@ -95,7 +103,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/setting/first', [SettingController::class, 'show'])->name('setting.show');
         Route::post('/setting', [SettingController::class, 'update'])->name('setting.update');
     });
- 
+
     Route::group(['middleware' => 'level:1,2'], function () {
         Route::get('/profil', [UserController::class, 'profil'])->name('user.profil');
         Route::post('/profil', [UserController::class, 'updateProfil'])->name('user.update_profil');

@@ -10,6 +10,8 @@ use App\Models\Penjualan;
 use App\Models\Produk;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -46,5 +48,42 @@ class DashboardController extends Controller
         } else {
             return view('kasir.dashboard');
         }
+    }
+    public function dataRestok()
+    {
+        $restok = Produk::whereRaw('stok-stokminimum < 1')
+            ->select('nama_produk', 'stok', 'stokminimum')
+            ->get();
+
+
+        return datatables()
+            ->of($restok)
+            ->addIndexColumn()
+            ->addColumn('selisih', function ($restok) {
+                return '
+                    <span class="badge text-white" style="background-color: red; color: white">' . $restok->stok - $restok->stokminimum . '</span>
+                ';
+            })
+            ->rawColumns(['selisih'])
+            ->make(true);
+    }
+    public function dataExpired()
+    {
+        $expired = Produk::leftJoin('supplier', 'supplier.id_supplier', '=', 'produk.id_supplier')
+            ->select('produk.nama_produk', 'produk.stok', 'produk.stokminimum', 'supplier.nama AS nama_supplier', 'produk.expired_date')
+            ->whereRaw("produk.expired_date IS NOT NULL AND DATE_SUB(expired_date, INTERVAL 8 MONTH) <= '" . date('Y-m-d') . "'")
+            ->get();
+
+        return datatables()
+            ->of($expired)
+            ->addIndexColumn()
+            ->addColumn('expired_date', function ($exp) {
+                return '
+                <div class="mb-1"><i class="fa fa-calendar"></i> ' . $exp->expired_date . '</div>
+                <span class="label label-danger">' . Carbon::now()->subMonth(1)->diffInMonths($exp->expired_date) . ' Bulan lagi</span>
+                ';
+            })
+            ->rawColumns(['expired_date'])
+            ->make(true);
     }
 }
